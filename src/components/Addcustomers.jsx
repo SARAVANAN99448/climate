@@ -17,7 +17,8 @@ const AddCustomers = () => {
     email: "",
   });
 
-  // Major cities in India (alphabetically ordered)
+  const [formErrors, setFormErrors] = useState({});
+
   const majorIndianCities = [
     "Agra", "Ahmedabad", "Aligarh", "Allahabad", "Amravati", "Amritsar",
     "Aurangabad", "Bangalore", "Bareilly", "Bhavnagar", "Bhilai", "Bhiwandi",
@@ -33,7 +34,7 @@ const AddCustomers = () => {
     "Tiruchirappalli", "Tiruppur", "Vadodara", "Varanasi", "Vasai-Virar",
     "Vijayawada", "Visakhapatnam", "Warangal"
   ];
-  // Indian states and union territories
+
   const indianStates = [
     "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa",
     "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala",
@@ -53,38 +54,51 @@ const AddCustomers = () => {
     } else {
       setFormData({ ...formData, [name]: value });
     }
+
+    // Clear error on typing
+    setFormErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleAdd = () => {
-    // Validation
-    if (!formData.title.trim()) {
-      alert("Please enter a title");
-      return;
-    }
+    const errors = {};
 
-    // Get existing customers from localStorage
-    const existingCustomers = JSON.parse(localStorage.getItem('customers') || '[]');
+    if (!formData.title.trim()) errors.title = "Title is required";
+    if (!formData.email.trim()) errors.email = "Email is required";
+    if (!formData.country.trim()) errors.country = "Country is required";
+    if (!formData.city.trim()) errors.city = "City is required";
 
-    // Create new customer with timestamp
+    setFormErrors(errors);
+
+    if (Object.keys(errors).length > 0) return;
+
+    const existingCustomers = JSON.parse(localStorage.getItem("customers") || "[]");
+
     const newCustomer = {
       ...formData,
       createdTime: new Date().toLocaleString(),
-      id: Date.now() // Simple ID generation
+      id: Date.now(),
     };
 
-    // Add new customer to the list
     const updatedCustomers = [...existingCustomers, newCustomer];
+    localStorage.setItem("customers", JSON.stringify(updatedCustomers));
 
-    // Save to localStorage
-    localStorage.setItem('customers', JSON.stringify(updatedCustomers));
-
-
-    // Navigate back to customers page
-    navigate('/customers');
+    navigate("/customers");
   };
 
   const handleCancel = () => {
-    navigate("/customers")
+    setFormData({
+      title: "",
+      description: "",
+      country: "",
+      city: "",
+      state: "",
+      zip: "",
+      address1: "",
+      address2: "",
+      phone: "",
+      email: "",
+    });
+    setFormErrors({});
   };
 
   return (
@@ -93,20 +107,27 @@ const AddCustomers = () => {
 
       <input
         name="title"
-        required
         placeholder="Title*"
-        className="w-full p-3 mb-3 border rounded"
+        className="w-full p-3 mb-1 border rounded"
         onChange={handleChange}
         value={formData.title}
       />
+      {formErrors.title && (
+        <p className="text-red-500 text-sm mb-2">{formErrors.title}</p>
+      )}
+
       <input
         name="email"
         type="email"
-        placeholder="Email"
-        className="w-full p-3 mb-3 border rounded"
+        placeholder="Email*"
+        className="w-full p-3 mb-1 border rounded"
         onChange={handleChange}
         value={formData.email}
       />
+      {formErrors.email && (
+        <p className="text-red-500 text-sm mb-2">{formErrors.email}</p>
+      )}
+
       <textarea
         name="description"
         placeholder="Description"
@@ -117,7 +138,7 @@ const AddCustomers = () => {
 
       <select
         name="country"
-        className="w-full p-3 mb-3 border rounded"
+        className="w-full p-3 mb-1 border rounded"
         onChange={handleChange}
         value={formData.country}
       >
@@ -125,6 +146,9 @@ const AddCustomers = () => {
         <option value="USA">USA</option>
         <option value="India">India</option>
       </select>
+      {formErrors.country && (
+        <p className="text-red-500 text-sm mb-2">{formErrors.country}</p>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
         <select
@@ -140,6 +164,10 @@ const AddCustomers = () => {
             </option>
           ))}
         </select>
+        {formErrors.city && (
+          <p className="text-red-500 text-sm col-span-3">{formErrors.city}</p>
+        )}
+
         <select
           name="state"
           className="p-3 border rounded"
@@ -153,6 +181,7 @@ const AddCustomers = () => {
             </option>
           ))}
         </select>
+
         <select
           name="zip"
           className="p-3 border rounded"
@@ -179,7 +208,6 @@ const AddCustomers = () => {
       />
 
       <div className="flex items-center gap-2 mb-4">
-        <span className="text-lg">🇺🇸</span>
         <input
           name="phone"
           placeholder="Phone"
